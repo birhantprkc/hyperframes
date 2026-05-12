@@ -1233,6 +1233,7 @@ export function initSandboxRuntimeModular(): void {
   const bindMediaMetadataListeners = () => {
     if (state.tornDown) return;
     const mediaEls = Array.from(document.querySelectorAll("video, audio")) as HTMLMediaElement[];
+    const isLazy = mediaPreloader.isLazy();
 
     let newElementsBound = false;
     for (const mediaEl of mediaEls) {
@@ -1241,22 +1242,20 @@ export function initSandboxRuntimeModular(): void {
       newElementsBound = true;
       mediaEl.addEventListener("loadedmetadata", scheduleMetadataDurationHydration);
       mediaEl.addEventListener("durationchange", scheduleMetadataDurationHydration);
+
+      // In eager mode, preload inline (same ordering as before lazy preloading)
+      if (!isLazy || isRenderMode) {
+        if (mediaEl.preload !== "auto") mediaEl.preload = "auto";
+        if (mediaEl.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) mediaEl.load();
+      }
     }
 
     if (newElementsBound && !isRenderMode) {
       mediaPreloader.refresh();
     }
 
-    if (!mediaPreloader.isLazy() || isRenderMode) {
-      for (const mediaEl of mediaEls) {
-        if (mediaEl.preload !== "auto") {
-          mediaEl.preload = "auto";
-        }
-        if (mediaEl.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
-          mediaEl.load();
-        }
-      }
-    } else {
+    // Lazy-mode demotion runs separately after refresh updates the clip list
+    if (mediaPreloader.isLazy() && !isRenderMode) {
       // Only demote timed media (elements with data-start) to metadata preload.
       // Untimed media (background audio, ambient loops, decorative video) must
       // keep their original preload state — the mediaPreloader only manages
