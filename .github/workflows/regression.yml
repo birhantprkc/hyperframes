@@ -34,13 +34,23 @@ jobs:
               - "packages/engine/**"
               - "Dockerfile*"
 
-  regression-shards:
+  preflight:
+    name: Preflight (lint + format)
     needs: changes
+    if: needs.changes.outputs.code == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: ./.github/actions/preflight
+
+  regression-shards:
+    needs: [changes, preflight]
     if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         # Shards are bin-packed by measured per-test duration (LPT heuristic on
         # CI run 25893372795) so each row carries ~15-16 min of work. When a
