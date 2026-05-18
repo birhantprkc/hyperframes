@@ -23,6 +23,7 @@ import {
   buildChunkSlices,
   DEFAULT_CHUNK_SIZE,
   DEFAULT_MAX_PARALLEL_CHUNKS,
+  MIN_CHUNK_SIZE,
   plan,
   resolveChunkPlan,
 } from "./plan.js";
@@ -93,6 +94,40 @@ describe("resolveChunkPlan", () => {
     expect(() => resolveChunkPlan(60, 240, 16.5)).toThrow(/positive integer/);
     expect(() => resolveChunkPlan(60, 240, Number.POSITIVE_INFINITY)).toThrow(/positive integer/);
   });
+
+  // ── Auto-size when configChunkSize is undefined ───────────────────────
+  // Pre-fix, `plan()` defaulted `chunkSize` to 240 on a `?? DEFAULT_CHUNK_SIZE`
+  // line, so a 660-frame composition with `maxParallelChunks=16` ended up at
+  // 3 chunks (ceil(660/240)) regardless of the caller's fan-out intent.
+  // Surfaced by the lever-1 chunk-scaling benchmark on 2026-05-17. The
+  // auto-sizer now picks `max(MIN_CHUNK_SIZE, ceil(totalFrames /
+  // maxParallelChunks))` whenever the caller leaves `chunkSize` undefined.
+
+  it("explicit chunkSize wins: 660 frames + chunkSize=240 + maxParallelChunks=16 → 3 chunks", () => {
+    // Regression guard for the "explicit number still works" half of the
+    // contract — passing 240 explicitly must not get auto-sized.
+    const result = resolveChunkPlan(660, 240, 16);
+    expect(result.chunkCount).toBe(3);
+    expect(result.effectiveChunkSize).toBe(240);
+  });
+
+  it("auto-sizes when chunkSize=undefined: 660 frames + maxParallelChunks=16 → 16 chunks", () => {
+    // ceil(660 / 16) = 42; max(MIN_CHUNK_SIZE=10, 42) = 42. naiveCount =
+    // ceil(660 / 42) = 16, which lands exactly at the cap.
+    const result = resolveChunkPlan(660, undefined, 16);
+    expect(result.chunkCount).toBe(16);
+    expect(result.effectiveChunkSize).toBe(42);
+  });
+
+  it("auto-size floor: tiny renders cap at MIN_CHUNK_SIZE rather than fragmenting infinitely", () => {
+    // 50 frames / 16 workers naively gives a 4-frame chunk size, which
+    // would produce 13 chunks of 4 frames each — per-chunk fixed overhead
+    // dwarfs the parallelism gain. The MIN_CHUNK_SIZE=10 floor pins
+    // chunkSize at 10, producing ceil(50/10) = 5 chunks instead.
+    const result = resolveChunkPlan(50, undefined, 16);
+    expect(result.chunkCount).toBe(5);
+    expect(result.effectiveChunkSize).toBe(MIN_CHUNK_SIZE);
+  });
 });
 
 describe("buildChunkSlices", () => {
@@ -116,6 +151,7 @@ describe("plan() defaults", () => {
   it("exports the documented chunking defaults", () => {
     expect(DEFAULT_CHUNK_SIZE).toBe(240);
     expect(DEFAULT_MAX_PARALLEL_CHUNKS).toBe(16);
+    expect(MIN_CHUNK_SIZE).toBe(10);
   });
 });
 
