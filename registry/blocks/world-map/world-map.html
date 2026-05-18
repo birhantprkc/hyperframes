@@ -170,7 +170,9 @@
       <div class="legend-group">
         <div
           class="legend-bar"
-          style="background: linear-gradient(90deg, #064e3b 0%, #0d9488 33%, #22d3ee 66%, #f0fdfa 100%)"
+          style="
+            background: linear-gradient(90deg, #064e3b 0%, #0d9488 33%, #22d3ee 66%, #f0fdfa 100%);
+          "
         ></div>
         <div class="legend-labels">
           <span>Low</span>
@@ -188,36 +190,36 @@
         /* ── GDP per capita data (2024 IMF estimates, USD) ── */
         /* Keys are ISO 3166-1 numeric codes as strings (3-digit, zero-padded) */
         var gdpData = {
-          "840": { name: "United States", gdp: 85373 },
-          "156": { name: "China", gdp: 13136 },
-          "356": { name: "India", gdp: 2731 },
-          "276": { name: "Germany", gdp: 54291 },
-          "826": { name: "United Kingdom", gdp: 48913 },
-          "250": { name: "France", gdp: 44408 },
-          "392": { name: "Japan", gdp: 33950 },
+          840: { name: "United States", gdp: 85373 },
+          156: { name: "China", gdp: 13136 },
+          356: { name: "India", gdp: 2731 },
+          276: { name: "Germany", gdp: 54291 },
+          826: { name: "United Kingdom", gdp: 48913 },
+          250: { name: "France", gdp: 44408 },
+          392: { name: "Japan", gdp: 33950 },
           "076": { name: "Brazil", gdp: 10412 },
           "036": { name: "Australia", gdp: 65366 },
-          "124": { name: "Canada", gdp: 54866 },
-          "643": { name: "Russia", gdp: 14403 },
-          "410": { name: "South Korea", gdp: 33147 },
-          "484": { name: "Mexico", gdp: 13434 },
-          "360": { name: "Indonesia", gdp: 5108 },
-          "566": { name: "Nigeria", gdp: 1621 },
-          "710": { name: "South Africa", gdp: 6190 },
-          "818": { name: "Egypt", gdp: 4295 },
-          "792": { name: "Turkey", gdp: 13110 },
-          "682": { name: "Saudi Arabia", gdp: 32270 },
-          "764": { name: "Thailand", gdp: 7647 },
-          "704": { name: "Vietnam", gdp: 4623 },
-          "616": { name: "Poland", gdp: 22393 },
-          "752": { name: "Sweden", gdp: 59324 },
-          "578": { name: "Norway", gdp: 94660 },
-          "756": { name: "Switzerland", gdp: 105669 },
+          124: { name: "Canada", gdp: 54866 },
+          643: { name: "Russia", gdp: 14403 },
+          410: { name: "South Korea", gdp: 33147 },
+          484: { name: "Mexico", gdp: 13434 },
+          360: { name: "Indonesia", gdp: 5108 },
+          566: { name: "Nigeria", gdp: 1621 },
+          710: { name: "South Africa", gdp: 6190 },
+          818: { name: "Egypt", gdp: 4295 },
+          792: { name: "Turkey", gdp: 13110 },
+          682: { name: "Saudi Arabia", gdp: 32270 },
+          764: { name: "Thailand", gdp: 7647 },
+          704: { name: "Vietnam", gdp: 4623 },
+          616: { name: "Poland", gdp: 22393 },
+          752: { name: "Sweden", gdp: 59324 },
+          578: { name: "Norway", gdp: 94660 },
+          756: { name: "Switzerland", gdp: 105669 },
           "032": { name: "Argentina", gdp: 13709 },
-          "170": { name: "Colombia", gdp: 7230 },
-          "404": { name: "Kenya", gdp: 2198 },
-          "586": { name: "Pakistan", gdp: 1658 },
-          "050": { name: "Bangladesh", gdp: 2688 }
+          170: { name: "Colombia", gdp: 7230 },
+          404: { name: "Kenya", gdp: 2198 },
+          586: { name: "Pakistan", gdp: 1658 },
+          "050": { name: "Bangladesh", gdp: 2688 },
         };
 
         /* Top 5 GDP countries for highlight pulse */
@@ -237,7 +239,7 @@
           { r: 6, g: 78, b: 59 },
           { r: 13, g: 148, b: 136 },
           { r: 34, g: 211, b: 238 },
-          { r: 240, g: 253, b: 250 }
+          { r: 240, g: 253, b: 250 },
         ];
 
         function gdpToColor(value) {
@@ -264,78 +266,69 @@
           .attr("viewBox", "0 0 1380 700")
           .attr("preserveAspectRatio", "xMidYMid meet");
 
-        var projection = d3
-          .geoNaturalEarth1()
-          .fitSize([1380, 700], { type: "Sphere" });
+        var projection = d3.geoNaturalEarth1().fitSize([1380, 700], { type: "Sphere" });
 
         var pathGenerator = d3.geoPath().projection(projection);
 
         /* Graticule */
         var graticule = d3.geoGraticule10();
-        svg
-          .append("path")
-          .datum(graticule)
-          .attr("class", "graticule")
-          .attr("d", pathGenerator);
+        svg.append("path").datum(graticule).attr("class", "graticule").attr("d", pathGenerator);
 
         /* Tooltip element */
         var tooltipEl = document.querySelector("#world-map .tooltip");
 
         /* Fetch topology and render countries */
-        d3.json(
-          "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
-        ).then(function (world) {
-          var countries = topojson.feature(
-            world,
-            world.objects.countries
-          ).features;
+        d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json").then(
+          function (world) {
+            var countries = topojson.feature(world, world.objects.countries).features;
 
-          svg
-            .selectAll(".country-path")
-            .data(countries)
-            .enter()
-            .append("path")
-            .attr("class", "country-path")
-            .attr("d", pathGenerator)
-            .attr("data-country", function (d) {
-              return String(d.id).padStart(3, "0");
-            })
-            .attr("fill", function (d) {
-              var code = String(d.id).padStart(3, "0");
-              if (gdpData[code]) {
-                return gdpToColor(gdpData[code].gdp);
-              }
-              return defaultFill;
-            })
-            .on("mouseenter", function (event, d) {
-              var code = String(d.id).padStart(3, "0");
-              if (gdpData[code]) {
-                var entry = gdpData[code];
-                tooltipEl.innerHTML =
-                  entry.name +
-                  '<span class="tt-value">$' +
-                  entry.gdp.toLocaleString() +
-                  "</span>";
-                tooltipEl.style.opacity = "1";
-                tooltipEl.style.transform = "translateY(0)";
-              }
-            })
-            .on("mousemove", function (event) {
-              var container = document.querySelector("#world-map");
-              var rect = container.getBoundingClientRect();
-              var x = event.clientX - rect.left + 16;
-              var y = event.clientY - rect.top - 40;
-              tooltipEl.style.left = x + "px";
-              tooltipEl.style.top = y + "px";
-            })
-            .on("mouseleave", function () {
-              tooltipEl.style.opacity = "0";
-              tooltipEl.style.transform = "translateY(4px)";
-            });
+            svg
+              .selectAll(".country-path")
+              .data(countries)
+              .enter()
+              .append("path")
+              .attr("class", "country-path")
+              .attr("d", pathGenerator)
+              .attr("data-country", function (d) {
+                return String(d.id).padStart(3, "0");
+              })
+              .attr("fill", function (d) {
+                var code = String(d.id).padStart(3, "0");
+                if (gdpData[code]) {
+                  return gdpToColor(gdpData[code].gdp);
+                }
+                return defaultFill;
+              })
+              .on("mouseenter", function (event, d) {
+                var code = String(d.id).padStart(3, "0");
+                if (gdpData[code]) {
+                  var entry = gdpData[code];
+                  tooltipEl.innerHTML =
+                    entry.name +
+                    '<span class="tt-value">$' +
+                    entry.gdp.toLocaleString() +
+                    "</span>";
+                  tooltipEl.style.opacity = "1";
+                  tooltipEl.style.transform = "translateY(0)";
+                }
+              })
+              .on("mousemove", function (event) {
+                var container = document.querySelector("#world-map");
+                var rect = container.getBoundingClientRect();
+                var x = event.clientX - rect.left + 16;
+                var y = event.clientY - rect.top - 40;
+                tooltipEl.style.left = x + "px";
+                tooltipEl.style.top = y + "px";
+              })
+              .on("mouseleave", function () {
+                tooltipEl.style.opacity = "0";
+                tooltipEl.style.transform = "translateY(4px)";
+              });
 
-          /* ── GSAP Timeline ── */
-          buildTimeline();
-        });
+            /* ── GSAP Timeline ── */
+            buildTimeline();
+          },
+        );
 
         function buildTimeline() {
           var tl = gsap.timeline({ paused: true });
@@ -346,9 +339,9 @@
             {
               clipPath: "inset(0 0% 0 0)",
               duration: 1,
-              ease: "power3.inOut"
+              ease: "power3.inOut",
             },
-            0
+            0,
           );
 
           /* 0.4s: Subtitle fade in (0.6s) */
@@ -357,9 +350,9 @@
             {
               opacity: 1,
               duration: 0.6,
-              ease: "power2.out"
+              ease: "power2.out",
             },
-            0.4
+            0.4,
           );
 
           /* 1.0s: Countries stagger reveal */
@@ -370,11 +363,11 @@
               duration: 0.3,
               stagger: {
                 each: 0.02,
-                from: "center"
+                from: "center",
               },
-              ease: "power1.out"
+              ease: "power1.out",
             },
-            1.0
+            1.0,
           );
 
           /* 4.0s: Legend fade in */
@@ -383,9 +376,9 @@
             {
               opacity: 1,
               duration: 0.6,
-              ease: "power2.out"
+              ease: "power2.out",
             },
-            4.0
+            4.0,
           );
 
           /* 4.5s: Source fade in */
@@ -394,15 +387,14 @@
             {
               opacity: 1,
               duration: 0.5,
-              ease: "power2.out"
+              ease: "power2.out",
             },
-            4.5
+            4.5,
           );
 
           /* 5.0s: Highlight pulse on top 5 GDP countries */
           for (var i = 0; i < top5Codes.length; i++) {
-            var selector =
-              '#world-map [data-country="' + top5Codes[i] + '"]';
+            var selector = '#world-map [data-country="' + top5Codes[i] + '"]';
 
             /* Pulse up: brightness + white stroke */
             tl.to(
@@ -412,9 +404,9 @@
                 stroke: "#ffffff",
                 strokeWidth: 1.8,
                 duration: 0.4,
-                ease: "power2.out"
+                ease: "power2.out",
               },
-              5.0 + i * 0.15
+              5.0 + i * 0.15,
             );
 
             /* Pulse back to normal */
@@ -425,9 +417,9 @@
                 stroke: "#1e293b",
                 strokeWidth: 0.6,
                 duration: 0.6,
-                ease: "power2.inOut"
+                ease: "power2.inOut",
               },
-              5.0 + i * 0.15 + 0.4
+              5.0 + i * 0.15 + 0.4,
             );
           }
 

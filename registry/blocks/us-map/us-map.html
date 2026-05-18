@@ -158,8 +158,7 @@
 
       <script>
         (function () {
-          const US_TOPO_URL =
-            "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
+          const US_TOPO_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
           const stateData = {
             "01": { name: "Alabama", abbr: "AL", density: 99.2 },
@@ -169,49 +168,49 @@
             "06": { name: "California", abbr: "CA", density: 253.9 },
             "08": { name: "Colorado", abbr: "CO", density: 56.5 },
             "09": { name: "Connecticut", abbr: "CT", density: 738.1 },
-            "10": { name: "Delaware", abbr: "DE", density: 508.0 },
-            "12": { name: "Florida", abbr: "FL", density: 410.5 },
-            "13": { name: "Georgia", abbr: "GA", density: 185.6 },
-            "15": { name: "Hawaii", abbr: "HI", density: 226.6 },
-            "16": { name: "Idaho", abbr: "ID", density: 22.8 },
-            "17": { name: "Illinois", abbr: "IL", density: 228.2 },
-            "18": { name: "Indiana", abbr: "IN", density: 186.7 },
-            "19": { name: "Iowa", abbr: "IA", density: 57.1 },
-            "20": { name: "Kansas", abbr: "KS", density: 35.9 },
-            "21": { name: "Kentucky", abbr: "KY", density: 113.2 },
-            "22": { name: "Louisiana", abbr: "LA", density: 107.7 },
-            "23": { name: "Maine", abbr: "ME", density: 43.8 },
-            "24": { name: "Maryland", abbr: "MD", density: 636.1 },
-            "25": { name: "Massachusetts", abbr: "MA", density: 901.2 },
-            "26": { name: "Michigan", abbr: "MI", density: 176.4 },
-            "27": { name: "Minnesota", abbr: "MN", density: 71.7 },
-            "28": { name: "Mississippi", abbr: "MS", density: 63.5 },
-            "29": { name: "Missouri", abbr: "MO", density: 89.5 },
-            "30": { name: "Montana", abbr: "MT", density: 7.6 },
-            "31": { name: "Nebraska", abbr: "NE", density: 25.3 },
-            "32": { name: "Nevada", abbr: "NV", density: 28.3 },
-            "33": { name: "New Hampshire", abbr: "NH", density: 153.2 },
-            "34": { name: "New Jersey", abbr: "NJ", density: 1263.0 },
-            "35": { name: "New Mexico", abbr: "NM", density: 17.4 },
-            "36": { name: "New York", abbr: "NY", density: 415.3 },
-            "37": { name: "North Carolina", abbr: "NC", density: 214.7 },
-            "38": { name: "North Dakota", abbr: "ND", density: 11.3 },
-            "39": { name: "Ohio", abbr: "OH", density: 288.8 },
-            "40": { name: "Oklahoma", abbr: "OK", density: 57.7 },
-            "41": { name: "Oregon", abbr: "OR", density: 43.9 },
-            "42": { name: "Pennsylvania", abbr: "PA", density: 286.1 },
-            "44": { name: "Rhode Island", abbr: "RI", density: 1061.4 },
-            "45": { name: "South Carolina", abbr: "SC", density: 170.2 },
-            "46": { name: "South Dakota", abbr: "SD", density: 12.2 },
-            "47": { name: "Tennessee", abbr: "TN", density: 167.0 },
-            "48": { name: "Texas", abbr: "TX", density: 112.8 },
-            "49": { name: "Utah", abbr: "UT", density: 40.3 },
-            "50": { name: "Vermont", abbr: "VT", density: 68.0 },
-            "51": { name: "Virginia", abbr: "VA", density: 218.6 },
-            "53": { name: "Washington", abbr: "WA", density: 115.9 },
-            "54": { name: "West Virginia", abbr: "WV", density: 74.6 },
-            "55": { name: "Wisconsin", abbr: "WI", density: 108.8 },
-            "56": { name: "Wyoming", abbr: "WY", density: 5.8 },
+            10: { name: "Delaware", abbr: "DE", density: 508.0 },
+            12: { name: "Florida", abbr: "FL", density: 410.5 },
+            13: { name: "Georgia", abbr: "GA", density: 185.6 },
+            15: { name: "Hawaii", abbr: "HI", density: 226.6 },
+            16: { name: "Idaho", abbr: "ID", density: 22.8 },
+            17: { name: "Illinois", abbr: "IL", density: 228.2 },
+            18: { name: "Indiana", abbr: "IN", density: 186.7 },
+            19: { name: "Iowa", abbr: "IA", density: 57.1 },
+            20: { name: "Kansas", abbr: "KS", density: 35.9 },
+            21: { name: "Kentucky", abbr: "KY", density: 113.2 },
+            22: { name: "Louisiana", abbr: "LA", density: 107.7 },
+            23: { name: "Maine", abbr: "ME", density: 43.8 },
+            24: { name: "Maryland", abbr: "MD", density: 636.1 },
+            25: { name: "Massachusetts", abbr: "MA", density: 901.2 },
+            26: { name: "Michigan", abbr: "MI", density: 176.4 },
+            27: { name: "Minnesota", abbr: "MN", density: 71.7 },
+            28: { name: "Mississippi", abbr: "MS", density: 63.5 },
+            29: { name: "Missouri", abbr: "MO", density: 89.5 },
+            30: { name: "Montana", abbr: "MT", density: 7.6 },
+            31: { name: "Nebraska", abbr: "NE", density: 25.3 },
+            32: { name: "Nevada", abbr: "NV", density: 28.3 },
+            33: { name: "New Hampshire", abbr: "NH", density: 153.2 },
+            34: { name: "New Jersey", abbr: "NJ", density: 1263.0 },
+            35: { name: "New Mexico", abbr: "NM", density: 17.4 },
+            36: { name: "New York", abbr: "NY", density: 415.3 },
+            37: { name: "North Carolina", abbr: "NC", density: 214.7 },
+            38: { name: "North Dakota", abbr: "ND", density: 11.3 },
+            39: { name: "Ohio", abbr: "OH", density: 288.8 },
+            40: { name: "Oklahoma", abbr: "OK", density: 57.7 },
+            41: { name: "Oregon", abbr: "OR", density: 43.9 },
+            42: { name: "Pennsylvania", abbr: "PA", density: 286.1 },
+            44: { name: "Rhode Island", abbr: "RI", density: 1061.4 },
+            45: { name: "South Carolina", abbr: "SC", density: 170.2 },
+            46: { name: "South Dakota", abbr: "SD", density: 12.2 },
+            47: { name: "Tennessee", abbr: "TN", density: 167.0 },
+            48: { name: "Texas", abbr: "TX", density: 112.8 },
+            49: { name: "Utah", abbr: "UT", density: 40.3 },
+            50: { name: "Vermont", abbr: "VT", density: 68.0 },
+            51: { name: "Virginia", abbr: "VA", density: 218.6 },
+            53: { name: "Washington", abbr: "WA", density: 115.9 },
+            54: { name: "West Virginia", abbr: "WV", density: 74.6 },
+            55: { name: "Wisconsin", abbr: "WI", density: 108.8 },
+            56: { name: "Wyoming", abbr: "WY", density: 5.8 },
           };
 
           const maxDensity = 500;
@@ -237,9 +236,7 @@
             return "rgb(" + r + "," + g + "," + bl + ")";
           }
 
-          const svg = document.querySelector(
-            '#us-map .map-svg'
-          );
+          const svg = document.querySelector("#us-map .map-svg");
           const statesGroup = svg.querySelector(".states-group");
           const labelsGroup = svg.querySelector(".labels-group");
           const tl = gsap.timeline({ paused: true });
@@ -256,10 +253,8 @@
               const sortedStates = states
                 .filter((f) => stateData[String(f.id).padStart(2, "0")])
                 .sort((a, b) => {
-                  const aData =
-                    stateData[String(a.id).padStart(2, "0")];
-                  const bData =
-                    stateData[String(b.id).padStart(2, "0")];
+                  const aData = stateData[String(a.id).padStart(2, "0")];
+                  const bData = stateData[String(b.id).padStart(2, "0")];
                   return aData.density - bData.density;
                 });
 
@@ -271,10 +266,7 @@
                 const d = path(feature);
                 if (!d) return;
 
-                const el = document.createElementNS(
-                  "http://www.w3.org/2000/svg",
-                  "path"
-                );
+                const el = document.createElementNS("http://www.w3.org/2000/svg", "path");
                 el.setAttribute("d", d);
                 el.setAttribute("class", "state-path");
                 el.setAttribute("data-state", info.abbr);
@@ -284,10 +276,7 @@
 
                 const centroid = path.centroid(feature);
                 if (centroid[0] && centroid[1]) {
-                  const label = document.createElementNS(
-                    "http://www.w3.org/2000/svg",
-                    "text"
-                  );
+                  const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
                   label.setAttribute("x", centroid[0]);
                   label.setAttribute("y", centroid[1]);
                   label.setAttribute("class", "state-label");
@@ -304,23 +293,23 @@
             const stateLabels = labelsGroup.querySelectorAll(".state-label");
 
             tl.to(
-              '#us-map .headline',
+              "#us-map .headline",
               {
                 clipPath: "inset(0 0% 0 0)",
                 duration: 1.0,
                 ease: "power2.inOut",
               },
-              0
+              0,
             );
 
             tl.to(
-              '#us-map .subtitle',
+              "#us-map .subtitle",
               {
                 opacity: 1,
                 duration: 0.6,
                 ease: "power2.out",
               },
-              0.4
+              0.4,
             );
 
             tl.to(
@@ -335,7 +324,7 @@
                 },
                 ease: "back.out(1.4)",
               },
-              1.0
+              1.0,
             );
 
             tl.to(
@@ -349,35 +338,33 @@
                 },
                 ease: "power2.out",
               },
-              3.5
+              3.5,
             );
 
             tl.to(
-              '#us-map .legend',
+              "#us-map .legend",
               {
                 opacity: 1,
                 y: 0,
                 duration: 0.6,
                 ease: "power2.out",
               },
-              5.0
+              5.0,
             );
 
             tl.to(
-              '#us-map .source',
+              "#us-map .source",
               {
                 opacity: 1,
                 duration: 0.5,
                 ease: "power2.out",
               },
-              5.5
+              5.5,
             );
 
             const highlightStates = ["CA", "NY", "TX", "FL", "NJ"];
             highlightStates.forEach((abbr, i) => {
-              const el = statesGroup.querySelector(
-                "[data-state=\"" + abbr + "\"]"
-              );
+              const el = statesGroup.querySelector('[data-state="' + abbr + '"]');
               if (!el) return;
 
               tl.to(
@@ -389,7 +376,7 @@
                   duration: 0.5,
                   ease: "power2.out",
                 },
-                6.5 + i * 0.8
+                6.5 + i * 0.8,
               );
 
               tl.to(
@@ -401,7 +388,7 @@
                   duration: 0.5,
                   ease: "power2.in",
                 },
-                7.0 + i * 0.8
+                7.0 + i * 0.8,
               );
             });
 
