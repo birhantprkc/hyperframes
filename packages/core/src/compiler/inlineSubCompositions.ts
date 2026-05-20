@@ -302,6 +302,10 @@ export function inlineSubCompositions(
       );
     }
 
+    if (innerRoot?.hasAttribute("data-timeline-locked")) {
+      hostEl.setAttribute("data-timeline-locked", "");
+    }
+
     // Copy dimension attributes from inner root to host if missing
     if (innerRoot) {
       const innerW = innerRoot.getAttribute("data-width");
