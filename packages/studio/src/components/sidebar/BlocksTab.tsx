@@ -1,5 +1,4 @@
 import { memo, useState, useCallback, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import { useBlockCatalog } from "../../hooks/useBlockCatalog";
 import {
   BLOCK_CATEGORIES,
@@ -8,12 +7,19 @@ import {
 } from "../../utils/blockCategories";
 import { TIMELINE_BLOCK_MIME } from "../../utils/timelineAssetDrop";
 
+export interface BlockPreviewInfo {
+  videoUrl?: string;
+  posterUrl?: string;
+  title: string;
+}
+
 interface BlocksTabProps {
   onAddBlock: (blockName: string) => void;
+  onPreviewBlock?: (preview: BlockPreviewInfo | null) => void;
 }
 
 // fallow-ignore-next-line complexity
-export const BlocksTab = memo(function BlocksTab({ onAddBlock }: BlocksTabProps) {
+export const BlocksTab = memo(function BlocksTab({ onAddBlock, onPreviewBlock }: BlocksTabProps) {
   const { loading, error, search, setSearch, category, setCategory, filteredBlocks } =
     useBlockCatalog();
 
@@ -114,6 +120,7 @@ export const BlocksTab = memo(function BlocksTab({ onAddBlock }: BlocksTabProps)
                   videoUrl={block.preview?.video}
                   dimensions={dims}
                   onAdd={() => onAddBlock(block.name)}
+                  onPreview={onPreviewBlock}
                 />
               );
             })}
@@ -163,6 +170,7 @@ function BlockCard({
   videoUrl,
   dimensions,
   onAdd,
+  onPreview,
 }: {
   name: string;
   title: string;
@@ -173,52 +181,35 @@ function BlockCard({
   videoUrl?: string;
   dimensions?: { width: number; height: number };
   onAdd: () => void;
+  onPreview?: (preview: BlockPreviewInfo | null) => void;
 }) {
   const [hovered, setHovered] = useState(false);
   const [adding, setAdding] = useState(false);
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const leaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
   const colors = getCategoryColors(category);
   const needsWebGL = tags?.includes("html-in-canvas") || tags?.includes("webgl");
 
-  const cancelLeave = useCallback(() => {
-    if (leaveTimer.current) {
-      clearTimeout(leaveTimer.current);
-      leaveTimer.current = null;
-    }
-  }, []);
-
   const handleEnter = useCallback(() => {
-    cancelLeave();
-    hoverTimer.current = setTimeout(() => setHovered(true), 500);
-  }, [cancelLeave]);
-
-  const dismiss = useCallback(() => {
-    if (hoverTimer.current) {
-      clearTimeout(hoverTimer.current);
-      hoverTimer.current = null;
-    }
-    cancelLeave();
-    setHovered(false);
-  }, [cancelLeave]);
+    hoverTimer.current = setTimeout(() => {
+      setHovered(true);
+      onPreview?.({ videoUrl, posterUrl, title });
+    }, 300);
+  }, [onPreview, videoUrl, posterUrl, title]);
 
   const handleLeave = useCallback(() => {
     if (hoverTimer.current) {
       clearTimeout(hoverTimer.current);
       hoverTimer.current = null;
     }
-    leaveTimer.current = setTimeout(() => setHovered(false), 150);
-  }, []);
+    setHovered(false);
+    onPreview?.(null);
+  }, [onPreview]);
 
   useEffect(() => {
-    if (!hovered) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") dismiss();
+    return () => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [hovered, dismiss]);
+  }, []);
 
   const handleAdd = useCallback(
     (e: React.MouseEvent) => {
@@ -251,7 +242,6 @@ function BlockCard({
       <div className="aspect-video w-full overflow-hidden relative">
         {hovered && videoUrl ? (
           <video
-            ref={videoRef}
             src={videoUrl}
             autoPlay
             muted
@@ -313,72 +303,6 @@ function BlockCard({
           </span>
         </div>
       </div>
-
-      {/* Fullscreen hover preview */}
-      {hovered &&
-        (videoUrl || posterUrl) &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center cursor-pointer"
-            onClick={dismiss}
-            onPointerEnter={cancelLeave}
-            onPointerLeave={handleLeave}
-          >
-            <div className="bg-black/80 absolute inset-0" />
-            <button
-              type="button"
-              onClick={dismiss}
-              className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-800/80 text-neutral-400 hover:text-white hover:bg-neutral-700 transition-colors"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            </button>
-            <div
-              className="relative rounded-xl overflow-hidden shadow-2xl border border-neutral-600/30 cursor-default"
-              style={{ width: "80vw", maxWidth: 1200, maxHeight: "80vh" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="aspect-video bg-neutral-950">
-                {videoUrl ? (
-                  <video
-                    src={videoUrl}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <img src={posterUrl} alt={title} className="w-full h-full object-contain" />
-                )}
-              </div>
-              <div className="bg-neutral-900/95 px-4 py-3">
-                <div className="text-[14px] font-semibold text-neutral-100">{title}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
-                  <span className={`text-[11px] ${colors.text}`}>
-                    {BLOCK_CATEGORIES.find((c) => c.id === category)?.label}
-                  </span>
-                  {duration != null && (
-                    <span className="text-[11px] text-neutral-500">{duration}s</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>,
-          document.body,
-        )}
     </div>
   );
 }

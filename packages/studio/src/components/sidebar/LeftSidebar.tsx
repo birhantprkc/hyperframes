@@ -10,7 +10,7 @@ import {
 import { CompositionsTab } from "./CompositionsTab";
 import { AssetsTab } from "./AssetsTab";
 import { trackStudioEvent } from "../../utils/studioTelemetry";
-import { BlocksTab } from "./BlocksTab";
+import { BlocksTab, type BlockPreviewInfo } from "./BlocksTab";
 import { FileTree } from "../editor/FileTree";
 import { STUDIO_BLOCKS_PANEL_ENABLED } from "../editor/manualEditingAvailability";
 
@@ -55,6 +55,7 @@ interface LeftSidebarProps {
   linting?: boolean;
   onToggleCollapse?: () => void;
   onAddBlock?: (blockName: string) => void;
+  onPreviewBlock?: (preview: BlockPreviewInfo | null) => void;
   takeoverContent?: ReactNode;
 }
 
@@ -84,6 +85,7 @@ export const LeftSidebar = memo(
       linting,
       onToggleCollapse,
       onAddBlock,
+      onPreviewBlock,
       takeoverContent,
     },
     ref,
@@ -165,7 +167,7 @@ export const LeftSidebar = memo(
                           : "text-neutral-500 hover:text-neutral-200"
                       }`}
                     >
-                      Blocks
+                      Catalog
                     </button>
                   )}
                 </div>
@@ -245,7 +247,7 @@ export const LeftSidebar = memo(
             )}
 
             {STUDIO_BLOCKS_PANEL_ENABLED && tab === "blocks" && onAddBlock && (
-              <BlocksTab onAddBlock={onAddBlock} />
+              <BlocksTab onAddBlock={onAddBlock} onPreviewBlock={onPreviewBlock} />
             )}
 
             {/* Lint button pinned at the bottom */}

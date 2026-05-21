@@ -12,6 +12,7 @@ import { usePreviewPersistence } from "./hooks/usePreviewPersistence";
 import { useTimelineEditing } from "./hooks/useTimelineEditing";
 import { addBlockToProject } from "./utils/blockInstaller";
 import type { BlockParam } from "@hyperframes/core/registry";
+import type { BlockPreviewInfo } from "./components/sidebar/BlocksTab";
 import { useDomEditSession } from "./hooks/useDomEditSession";
 import { useAppHotkeys } from "./hooks/useAppHotkeys";
 import { useClipboard } from "./hooks/useClipboard";
@@ -80,6 +81,7 @@ export function StudioApp() {
     params: BlockParam[];
     compositionPath: string;
   } | null>(null);
+  const [blockPreview, setBlockPreview] = useState<BlockPreviewInfo | null>(null);
 
   const previewIframeRef = useRef<HTMLIFrameElement | null>(null);
   const activeCompPathRef = useRef(activeCompPath);
@@ -562,6 +564,7 @@ export function StudioApp() {
                   leftSidebarRef={leftSidebarRef}
                   onSelectComposition={handleSelectComposition}
                   onAddBlock={handleAddBlock}
+                  onPreviewBlock={setBlockPreview}
                   onLint={handleLint}
                   linting={linting}
                 />
@@ -579,6 +582,7 @@ export function StudioApp() {
                   setCompIdToSrc={setCompIdToSrc}
                   setCompositionLoading={setCompositionLoading}
                   shouldShowSelectedDomBounds={shouldShowSelectedDomBounds}
+                  blockPreview={blockPreview}
                 />
 
                 {!panelLayout.rightCollapsed && (

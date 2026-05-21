@@ -12,6 +12,7 @@ import {
 } from "./editor/manualEditingAvailability";
 import { useStudioContext } from "../contexts/StudioContext";
 import { useDomEditContext } from "../contexts/DomEditContext";
+import type { BlockPreviewInfo } from "./sidebar/BlocksTab";
 
 export interface StudioPreviewAreaProps {
   timelineToolbar: ReactNode;
@@ -49,6 +50,7 @@ export interface StudioPreviewAreaProps {
   setCompIdToSrc: (map: Map<string, string>) => void;
   setCompositionLoading: (loading: boolean) => void;
   shouldShowSelectedDomBounds: boolean;
+  blockPreview?: BlockPreviewInfo | null;
 }
 
 export function StudioPreviewArea({
@@ -65,6 +67,7 @@ export function StudioPreviewArea({
   setCompIdToSrc,
   setCompositionLoading,
   shouldShowSelectedDomBounds,
+  blockPreview,
 }: StudioPreviewAreaProps) {
   const {
     projectId,
@@ -174,6 +177,33 @@ export function StudioPreviewArea({
         timelineVisible={timelineVisible}
         onToggleTimeline={toggleTimelineVisibility}
       />
+      {blockPreview && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 pointer-events-none">
+          <div className="relative w-[80%] max-w-[900px] rounded-lg overflow-hidden shadow-2xl border border-neutral-700/40">
+            <div className="aspect-video bg-neutral-950">
+              {blockPreview.videoUrl ? (
+                <video
+                  src={blockPreview.videoUrl}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="w-full h-full object-contain"
+                />
+              ) : blockPreview.posterUrl ? (
+                <img
+                  src={blockPreview.posterUrl}
+                  alt={blockPreview.title}
+                  className="w-full h-full object-contain"
+                />
+              ) : null}
+            </div>
+            <div className="bg-neutral-900/95 px-3 py-2">
+              <div className="text-[12px] font-medium text-neutral-200">{blockPreview.title}</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

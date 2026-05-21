@@ -126,7 +126,12 @@ export async function addBlockToProject(
             ? Math.max(...relevantElements.map((te) => te.track)) + 1
             : 1);
 
-      const zIndex = Math.max(1, relevantElements.length + 1);
+      const zIndexMatches = originalContent.matchAll(/z-index:\s*(\d+)/g);
+      let maxExistingZ = 0;
+      for (const m of zIndexMatches) {
+        maxExistingZ = Math.max(maxExistingZ, parseInt(m[1]!, 10));
+      }
+      const zIndex = maxExistingZ + 1;
 
       const width = isBlock
         ? (block as { dimensions: { width: number } }).dimensions.width
