@@ -23,6 +23,12 @@ function errorProps(value: unknown): {
 }
 
 window.addEventListener("error", (event) => {
+  if (event.message?.includes("ResizeObserver loop")) {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    return;
+  }
+
   trackStudioEvent("unhandled_error", {
     ...errorProps(event.error),
     error_message: event.message,
