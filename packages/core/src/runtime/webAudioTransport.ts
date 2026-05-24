@@ -191,6 +191,18 @@ export class WebAudioTransport {
     }
   }
 
+  setElementVolume(el: HTMLMediaElement, volume: number): void {
+    const safeVolume = Math.max(0, Math.min(1, volume));
+    for (const source of this._activeSources) {
+      if (source.el !== el) continue;
+      try {
+        source.gainNode.gain.value = safeVolume;
+      } catch (err) {
+        swallow("webAudioTransport.setElementVolume", err);
+      }
+    }
+  }
+
   setMuted(muted: boolean): void {
     if (this._masterGain) {
       this._masterGain.gain.value = muted ? 0 : 1;

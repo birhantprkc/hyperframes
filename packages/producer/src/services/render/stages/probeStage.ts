@@ -40,6 +40,7 @@ import { fpsToNumber } from "@hyperframes/core";
 import type { CompiledComposition } from "../../htmlCompiler.js";
 import {
   discoverMediaFromBrowser,
+  discoverAudioVolumeAutomationFromTimeline,
   discoverVideoVisibilityFromTimeline,
   recompileWithResolutions,
   resolveCompositionDurations,
@@ -108,14 +109,22 @@ export async function runProbeStage(input: ProbeStageInput): Promise<ProbeStageR
 
   const probeStart = Date.now();
   const hasAutoStartVideos = compiled.html.includes("data-hf-auto-start");
+  const hasScriptedAudio =
+    composition.audios.length > 0 &&
+    /<script\b/i.test(compiled.html) &&
+    /\b(?:volume|data-volume)\b/i.test(compiled.html);
   const needsBrowser =
-    composition.duration <= 0 || compiled.unresolvedCompositions.length > 0 || hasAutoStartVideos;
+    composition.duration <= 0 ||
+    compiled.unresolvedCompositions.length > 0 ||
+    hasAutoStartVideos ||
+    hasScriptedAudio;
 
   if (needsBrowser) {
     const reasons = [];
     if (composition.duration <= 0) reasons.push("root duration unknown");
     if (compiled.unresolvedCompositions.length > 0)
       reasons.push(`${compiled.unresolvedCompositions.length} unresolved composition(s)`);
+    if (hasScriptedAudio) reasons.push("scripted audio volume");
 
     fileServer = await createFileServer({
       projectDir,
@@ -289,6 +298,27 @@ export async function runProbeStage(input: ProbeStageInput): Promise<ProbeStageR
             });
             existingAudioIds.add(el.id);
           }
+        }
+      }
+    }
+
+    if (composition.audios.length > 0) {
+      const automation = await discoverAudioVolumeAutomationFromTimeline(
+        probeSession.page,
+        composition.audios.map((audio) => audio.id),
+        composition.duration,
+        fpsToNumber(job.config.fps),
+      );
+      assertNotAborted();
+      if (automation.length > 0) {
+        const byId = new Map(automation.map((entry) => [entry.id, entry.keyframes]));
+        for (const audio of composition.audios) {
+          const keyframes = byId.get(audio.id);
+          if (!keyframes || keyframes.length === 0) continue;
+          audio.volumeKeyframes = keyframes;
+          log.info(`[Probe] Runtime audio volume automation: ${audio.id}`, {
+            keyframeCount: keyframes.length,
+          });
         }
       }
     }

@@ -1241,6 +1241,10 @@ export function initSandboxRuntimeModular(): void {
     for (const mediaEl of mediaEls) {
       if (metadataBoundMedia.has(mediaEl)) continue;
       metadataBoundMedia.add(mediaEl);
+      const parsedVolume = Number.parseFloat(mediaEl.dataset.volume ?? "");
+      if (Number.isFinite(parsedVolume)) {
+        mediaEl.volume = Math.max(0, Math.min(1, parsedVolume));
+      }
       mediaEl.addEventListener("loadedmetadata", scheduleMetadataDurationHydration);
       mediaEl.addEventListener("durationchange", scheduleMetadataDurationHydration);
 
@@ -1312,6 +1316,7 @@ export function initSandboxRuntimeModular(): void {
       userMuted: state.bridgeMuted,
       userVolume: state.bridgeVolume,
       forceSync,
+      onElementVolume: (el, volume) => webAudio.setElementVolume(el, volume),
       onAutoplayBlocked: () => {
         if (state.mediaAutoplayBlockedPosted) return;
         state.mediaAutoplayBlockedPosted = true;
@@ -1461,8 +1466,8 @@ export function initSandboxRuntimeModular(): void {
         externalCompositionsReady = true;
         bindRootTimelineIfAvailable();
         window.__renderReady = true;
-        runAdapters("discover", state.currentTime);
         bindMediaMetadataListeners();
+        runAdapters("discover", state.currentTime);
         installAssetFailureDiagnostics();
         applyCaptionOverrides();
         postTimeline();
@@ -1667,8 +1672,8 @@ export function initSandboxRuntimeModular(): void {
   ] as RuntimeDeterministicAdapter[];
   patchVideoTextureCompat();
   installRuntimeErrorDiagnostics();
-  runAdapters("discover");
   bindMediaMetadataListeners();
+  runAdapters("discover");
   // ── Single-clock transport ──
   //
   // TransportClock is the sole time authority. GSAP is always paused —

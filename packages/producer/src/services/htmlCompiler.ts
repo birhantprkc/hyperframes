@@ -31,6 +31,7 @@ import {
   type ImageElement,
   parseAudioElements,
   type AudioElement,
+  type AudioVolumeKeyframe,
   analyzeKeyframeIntervals,
 } from "@hyperframes/engine";
 import { downloadToTemp, isHttpUrl } from "../utils/urlDownloader.js";
@@ -1069,6 +1070,11 @@ export interface BrowserMediaElement {
   volume: number;
 }
 
+export interface BrowserAudioVolumeAutomation {
+  id: string;
+  keyframes: AudioVolumeKeyframe[];
+}
+
 export async function discoverMediaFromBrowser(page: Page): Promise<BrowserMediaElement[]> {
   const elements = await page.evaluate(() => {
     const results: {
@@ -1117,6 +1123,97 @@ export async function discoverMediaFromBrowser(page: Page): Promise<BrowserMedia
   });
 
   return elements as BrowserMediaElement[];
+}
+
+export async function discoverAudioVolumeAutomationFromTimeline(
+  page: Page,
+  audioIds: string[],
+  compositionDuration: number,
+  sampleFps: number,
+): Promise<BrowserAudioVolumeAutomation[]> {
+  if (audioIds.length === 0 || compositionDuration <= 0) return [];
+
+  const sampleStep = 1 / Math.min(60, Math.max(1, sampleFps));
+  return page.evaluate(
+    ({ ids, duration, step }) => {
+      const results: { id: string; keyframes: { time: number; volume: number }[] }[] = [];
+      const timelines = (window as unknown as { __timelines?: Record<string, unknown> })
+        .__timelines;
+      if (!timelines) return results;
+
+      const rootEl = document.querySelector("[data-composition-id]");
+      const compId = rootEl?.getAttribute("data-composition-id");
+      if (!compId) return results;
+
+      const tl = timelines[compId] as
+        | {
+            totalTime?: (t: number, suppressEvents?: boolean) => unknown;
+            seek?: (t: number, suppressEvents?: boolean) => unknown;
+          }
+        | undefined;
+      if (!tl) return results;
+
+      const seekTl = (t: number) => {
+        if (typeof tl.totalTime === "function") {
+          tl.totalTime(t, false);
+        } else if (typeof tl.seek === "function") {
+          tl.seek(t, false);
+        }
+      };
+
+      for (const id of ids) {
+        const el =
+          document.getElementById(id) ?? document.getElementById(id.replace(/-audio$/, ""));
+        if (!(el instanceof HTMLAudioElement) && !(el instanceof HTMLVideoElement)) continue;
+
+        const start = Number.parseFloat(el.dataset.start ?? "0") || 0;
+        const endAttr = Number.parseFloat(el.dataset.end ?? "");
+        const durationAttr = Number.parseFloat(el.dataset.duration ?? "");
+        const end =
+          Number.isFinite(endAttr) && endAttr > start
+            ? endAttr
+            : Number.isFinite(durationAttr) && durationAttr > 0
+              ? start + durationAttr
+              : duration;
+        const sampleStart = Math.max(0, start);
+        const sampleEnd = Math.min(duration, end);
+        const initialVolumeAttr = Number.parseFloat(el.dataset.volume ?? "");
+        if (Number.isFinite(initialVolumeAttr)) {
+          el.volume = Math.max(0, Math.min(1, initialVolumeAttr));
+        }
+
+        const keyframes: { time: number; volume: number }[] = [];
+        for (let t = sampleStart; t <= sampleEnd + 0.000001; t += step) {
+          const boundedTime = Math.min(sampleEnd, t);
+          seekTl(boundedTime);
+          const rawVolume = Number(el.volume);
+          if (!Number.isFinite(rawVolume)) continue;
+          const volume = Math.max(0, Math.min(1, rawVolume));
+          const last = keyframes.at(-1);
+          if (!last || Math.abs(last.volume - volume) > 0.0001 || boundedTime === sampleEnd) {
+            keyframes.push({
+              time: Number(boundedTime.toFixed(6)),
+              volume: Number(volume.toFixed(6)),
+            });
+          }
+          if (boundedTime === sampleEnd) break;
+        }
+
+        const staticAttr = Number.parseFloat(el.dataset.volume ?? "");
+        const staticVolume = Number.isFinite(staticAttr) ? Math.max(0, Math.min(1, staticAttr)) : 1;
+        const hasAutomation = keyframes.some(
+          (keyframe) => Math.abs(keyframe.volume - staticVolume) > 0.0001,
+        );
+        if (hasAutomation) {
+          results.push({ id, keyframes });
+        }
+      }
+
+      seekTl(0);
+      return results;
+    },
+    { ids: audioIds, duration: compositionDuration, step: sampleStep },
+  );
 }
 
 export interface VideoVisibilityWindow {
