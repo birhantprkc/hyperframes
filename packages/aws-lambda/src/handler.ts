@@ -229,6 +229,16 @@ async function handlePlan(event: PlanEvent, deps?: HandlerDeps): Promise<PlanLam
   const s3 = deps?.s3 ?? getS3Client();
   const primitive = deps?.primitives?.plan ?? plan;
 
+  // The producer's probe stage launches Chromium whenever the composition
+  // needs a runtime duration probe or has unresolved sub-compositions, so
+  // plan has to resolve Chrome the same way renderChunk does. Without this
+  // the probe throws "An `executablePath` or `channel` must be specified
+  // for `puppeteer-core`" the moment runProbeStage calls puppeteer.launch.
+  if (!deps?.skipChromeResolution && !process.env.PRODUCER_HEADLESS_SHELL_PATH) {
+    const chromePath = await resolveChromeExecutablePath();
+    process.env.PRODUCER_HEADLESS_SHELL_PATH = chromePath;
+  }
+
   const work = mkdtempSync(join(deps?.tmpRoot ?? tmpdir(), "hf-lambda-plan-"));
   // We use `.tar.gz` (not `.zip`) as the project archive's on-the-wire
   // format because Lambda's Amazon Linux base image ships GNU `tar` but
