@@ -1591,6 +1591,107 @@ describe("HyperframesPlayer audio lock", () => {
   });
 });
 
+describe("HyperframesPlayer audio lock — Claude desktop UA fallback", () => {
+  // Some host renderers (observed on the Claude desktop Electron client) strip
+  // unknown custom-element attributes before they reach the DOM, so the
+  // `audio-locked` attribute is lost. The player self-imposes the lock based
+  // on UA detection so chat-host audio stays muted even without the attribute.
+  let player: HTMLElement & { muted: boolean; audioLocked: boolean };
+  let originalUserAgent: PropertyDescriptor | undefined;
+
+  function stubUserAgent(ua: string) {
+    Object.defineProperty(navigator, "userAgent", {
+      value: ua,
+      configurable: true,
+    });
+  }
+
+  beforeEach(async () => {
+    originalUserAgent = Object.getOwnPropertyDescriptor(
+      Object.getPrototypeOf(navigator),
+      "userAgent",
+    );
+    await import("./hyperframes-player.js");
+    player = document.createElement("hyperframes-player") as typeof player;
+  });
+
+  afterEach(() => {
+    if (originalUserAgent) {
+      Object.defineProperty(Object.getPrototypeOf(navigator), "userAgent", originalUserAgent);
+    }
+    vi.restoreAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  it("forces muted on Claude desktop UA even without the audio-locked attribute", () => {
+    stubUserAgent(
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Claude/1.11187.4 Chrome/126.0.0.0 Electron/31.0.0 Safari/537.36",
+    );
+
+    document.body.appendChild(player);
+
+    expect(player.hasAttribute("audio-locked")).toBe(false);
+    expect(player.muted).toBe(true);
+    expect(player.hasAttribute("muted")).toBe(true);
+  });
+
+  it("re-asserts mute on Claude desktop when something tries to unmute", () => {
+    stubUserAgent("Claude/1.11187.4 Chrome/126.0.0.0 Electron/31.0.0");
+    document.body.appendChild(player);
+
+    player.muted = false;
+    expect(player.hasAttribute("muted")).toBe(true);
+
+    player.removeAttribute("muted");
+    expect(player.hasAttribute("muted")).toBe(true);
+  });
+
+  it("hides the volume controls on Claude desktop without the attribute", () => {
+    stubUserAgent("Claude/1.11187.4 Chrome/126.0.0.0 Electron/31.0.0");
+    player.setAttribute("controls", "");
+    document.body.appendChild(player);
+
+    const volumeWrap = player.shadowRoot!.querySelector(".hfp-volume-wrap") as HTMLElement;
+    expect(volumeWrap.style.display).toBe("none");
+  });
+
+  it("does NOT force mute on a regular browser UA", () => {
+    stubUserAgent(
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    );
+
+    document.body.appendChild(player);
+
+    expect(player.hasAttribute("audio-locked")).toBe(false);
+    expect(player.muted).toBe(false);
+    expect(player.hasAttribute("muted")).toBe(false);
+  });
+
+  it("does NOT force mute on Electron apps that aren't Claude desktop", () => {
+    // Other Electron clients (e.g. VS Code embedded view) shouldn't be muted.
+    stubUserAgent(
+      "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/126.0.0.0 Electron/31.0.0 Safari/537.36",
+    );
+
+    document.body.appendChild(player);
+
+    expect(player.muted).toBe(false);
+  });
+
+  it("keeps `audioLocked` property reflecting only the attribute, not the UA fallback", () => {
+    // External consumers (pacific widget, etc.) read `audioLocked` to mirror
+    // their own state. The UA fallback is an internal safety net and must not
+    // leak into the public property — otherwise unsetting `audioLocked` would
+    // appear to have no effect from the consumer's perspective.
+    stubUserAgent("Claude/1.11187.4 Chrome/126.0.0.0 Electron/31.0.0");
+    document.body.appendChild(player);
+
+    expect(player.audioLocked).toBe(false);
+  });
+});
+
 // ── Playback rate ──
 
 describe("HyperframesPlayer playback rate", () => {
